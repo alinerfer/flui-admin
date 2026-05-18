@@ -24,6 +24,13 @@ export default function PontosPage() {
     setPontos(dados);
   }, []);
 
+  function removerPonto(id: string) {
+    if (!confirm("Remover este ponto?")) return;
+    const novos = pontos.filter((p) => p.id !== id);
+    setPontos(novos);
+    localStorage.setItem("pontos", JSON.stringify(novos));
+  }
+
   return (
     <div className="p-8">
       <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -47,7 +54,15 @@ export default function PontosPage() {
               key={p.id}
               className="border border-gray-200 rounded-md p-4 bg-white dark:border-gray-800 dark:bg-gray-900"
             >
-              <h2 className="font-semibold">{p.nome}</h2>
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="font-semibold">{p.nome}</h2>
+                <button
+                  onClick={() => removerPonto(p.id)}
+                  className="text-sm text-red-600 hover:underline dark:text-red-400"
+                >
+                  Remover
+                </button>
+              </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {p.endereco}
               </p>
