@@ -18,6 +18,7 @@ type Ponto = {
 export default function AvaliacoesPage() {
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [pontos, setPontos] = useState<Ponto[]>([]);
+  const [filtroPonto, setFiltroPonto] = useState("todos");
 
   useEffect(() => {
     setPontos(JSON.parse(localStorage.getItem("pontos") || "[]"));
@@ -60,17 +61,38 @@ export default function AvaliacoesPage() {
     return pontos.find((p) => p.id === id)?.nome ?? "Ponto removido";
   }
 
+  const avaliacoesFiltradas =
+    filtroPonto === "todos"
+      ? avaliacoes
+      : avaliacoes.filter((a) => a.pontoId === filtroPonto);
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Avaliações</h1>
 
-      {avaliacoes.length === 0 ? (
+      <label className="flex flex-col gap-1 text-sm mb-4 max-w-xs">
+        <span className="font-medium">Filtrar por ponto</span>
+        <select
+          value={filtroPonto}
+          onChange={(e) => setFiltroPonto(e.target.value)}
+          className="border border-gray-300 rounded-md px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
+        >
+          <option value="todos">Todos os pontos</option>
+          {pontos.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.nome}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {avaliacoesFiltradas.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400">
           Nenhuma avaliação ainda.
         </p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {avaliacoes.map((a) => (
+          {avaliacoesFiltradas.map((a) => (
             <li
               key={a.id}
               className="border border-gray-200 rounded-md p-4 bg-white dark:border-gray-800 dark:bg-gray-900"
