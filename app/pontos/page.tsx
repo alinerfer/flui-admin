@@ -20,8 +20,39 @@ export default function PontosPage() {
   const [pontos, setPontos] = useState<Ponto[]>([]);
 
   useEffect(() => {
-    const dados = JSON.parse(localStorage.getItem("pontos") || "[]");
-    setPontos(dados);
+    const dados: Ponto[] = JSON.parse(localStorage.getItem("pontos") || "[]");
+    if (dados.length === 0) {
+      const iniciais: Ponto[] = [
+        {
+          id: "paulista",
+          nome: "Posto Av. Paulista",
+          endereco: "Av. Paulista, 1000",
+          cidade: "São Paulo",
+          uf: "SP",
+          conector: "CCS",
+          potencia: 150,
+          preco: 1.85,
+          latitude: -23.5613,
+          longitude: -46.6565,
+        },
+        {
+          id: "iguatemi",
+          nome: "Shopping Iguatemi",
+          endereco: "Av. Brigadeiro Faria Lima, 2232",
+          cidade: "São Paulo",
+          uf: "SP",
+          conector: "Type 2",
+          potencia: 22,
+          preco: 1.45,
+          latitude: -23.5762,
+          longitude: -46.6896,
+        },
+      ];
+      localStorage.setItem("pontos", JSON.stringify(iniciais));
+      setPontos(iniciais);
+    } else {
+      setPontos(dados);
+    }
   }, []);
 
   function removerPonto(id: string) {
