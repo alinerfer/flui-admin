@@ -37,20 +37,24 @@ export default function PontosPage() {
       </div>
 
       {pontos.length === 0 ? (
-        <p className="text-gray-500">Nenhum ponto cadastrado ainda.</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Nenhum ponto cadastrado ainda.
+        </p>
       ) : (
         <ul className="flex flex-col gap-3">
           {pontos.map((p) => (
             <li
               key={p.id}
-              className="border border-gray-200 rounded-md p-4 bg-white"
+              className="border border-gray-200 rounded-md p-4 bg-white dark:border-gray-800 dark:bg-gray-900"
             >
               <h2 className="font-semibold">{p.nome}</h2>
-              <p className="text-sm text-gray-600">{p.endereco}</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {p.endereco}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {p.cidade} - {p.uf}
               </p>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {p.conector} · {p.potencia} kW · R$ {p.preco.toFixed(2)}/kWh
               </p>
             </li>
