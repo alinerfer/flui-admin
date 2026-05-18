@@ -56,12 +56,20 @@ export default function PontosPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <h2 className="font-semibold">{p.nome}</h2>
-                <button
-                  onClick={() => removerPonto(p.id)}
-                  className="text-sm text-red-600 hover:underline dark:text-red-400"
-                >
-                  Remover
-                </button>
+                <div className="flex gap-3">
+                  <Link
+                    href={`/pontos/${p.id}/editar`}
+                    className="text-sm text-emerald-700 hover:underline dark:text-emerald-400"
+                  >
+                    Editar
+                  </Link>
+                  <button
+                    onClick={() => removerPonto(p.id)}
+                    className="text-sm text-red-600 hover:underline dark:text-red-400"
+                  >
+                    Remover
+                  </button>
+                </div>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {p.endereco}
