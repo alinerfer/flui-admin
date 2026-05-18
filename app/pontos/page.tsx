@@ -26,11 +26,11 @@ export default function PontosPage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Pontos de recarga</h1>
         <Link
           href="/pontos/novo"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
         >
           + Novo ponto
         </Link>
