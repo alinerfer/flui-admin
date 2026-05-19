@@ -15,7 +15,11 @@ export default function LoginPage() {
 
     if (usuario === "admin" && senha === "admin") {
       localStorage.setItem("logado", "1");
-      router.push("/pontos");
+      if (localStorage.getItem("senha_hash")) {
+        router.push("/pontos");
+      } else {
+        router.push("/trocar-senha");
+      }
     } else {
       setErro("Usuário ou senha inválidos");
     }
