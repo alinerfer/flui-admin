@@ -3,25 +3,46 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
+async function gerarHash(senha: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(senha);
+  const buffer = await crypto.subtle.digest("SHA-256", data);
+  const arr = Array.from(new Uint8Array(buffer));
+  return arr.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [erro, setErro] = useState("");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const usuario = String(data.get("usuario"));
     const senha = String(data.get("senha"));
 
-    if (usuario === "admin" && senha === "admin") {
-      localStorage.setItem("logado", "1");
-      if (localStorage.getItem("senha_hash")) {
-        router.push("/pontos");
-      } else {
-        router.push("/trocar-senha");
-      }
-    } else {
+    if (usuario !== "admin") {
       setErro("Usuário ou senha inválidos");
+      return;
+    }
+
+    const senhaHash = localStorage.getItem("senha_hash");
+
+    if (senhaHash) {
+      const hash = await gerarHash(senha);
+      if (hash !== senhaHash) {
+        setErro("Usuário ou senha inválidos");
+        return;
+      }
+      localStorage.setItem("logado", "1");
+      router.push("/pontos");
+    } else {
+      if (senha !== "admin") {
+        setErro("Usuário ou senha inválidos");
+        return;
+      }
+      localStorage.setItem("logado", "1");
+      router.push("/trocar-senha");
     }
   }
 
