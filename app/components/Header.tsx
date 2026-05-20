@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const abas = [
   { href: "/pontos", label: "Pontos de recarga" },
@@ -10,13 +10,25 @@ const abas = [
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  function sair() {
+    localStorage.removeItem("logado");
+    router.push("/login");
+  }
 
   return (
     <header className="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
-      <div className="px-8 py-4">
+      <div className="px-8 py-4 flex items-center justify-between">
         <Link href="/" className="text-lg font-bold">
           Flui Admin
         </Link>
+        <button
+          onClick={sair}
+          className="text-sm text-gray-600 hover:underline dark:text-gray-400"
+        >
+          Sair
+        </button>
       </div>
       <nav className="px-4 flex gap-1">
         {abas.map((aba) => {
