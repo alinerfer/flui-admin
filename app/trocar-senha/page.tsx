@@ -2,14 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-
-async function gerarHash(senha: string) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(senha);
-  const buffer = await crypto.subtle.digest("SHA-256", data);
-  const arr = Array.from(new Uint8Array(buffer));
-  return arr.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
+import { api } from "@/lib/api";
 
 export default function TrocarSenhaPage() {
   const router = useRouter();
@@ -17,6 +10,7 @@ export default function TrocarSenhaPage() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setErro("");
     const data = new FormData(e.currentTarget);
     const novaSenha = String(data.get("novaSenha"));
     const confirmacao = String(data.get("confirmacao"));
@@ -26,9 +20,15 @@ export default function TrocarSenhaPage() {
       return;
     }
 
-    const hash = await gerarHash(novaSenha);
-    localStorage.setItem("senha_hash", hash);
-    router.push("/pontos");
+    try {
+      await api("/api/trocar-senha", {
+        metodo: "POST",
+        corpo: { senha_nova: novaSenha },
+      });
+      router.push("/pontos");
+    } catch (e) {
+      setErro((e as Error).message);
+    }
   }
 
   return (
