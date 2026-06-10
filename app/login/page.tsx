@@ -2,14 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { api, salvarToken } from "@/lib/api";
 
-async function gerarHash(senha: string) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(senha);
-  const buffer = await crypto.subtle.digest("SHA-256", data);
-  const arr = Array.from(new Uint8Array(buffer));
-  return arr.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
+type RespostaLogin = {
+  token: string;
+  usuario: {
+    id: number;
+    usuario: string;
+    tipo: "admin" | "motorista";
+    precisa_trocar_senha: boolean;
+  };
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,32 +20,24 @@ export default function LoginPage() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setErro("");
     const data = new FormData(e.currentTarget);
     const usuario = String(data.get("usuario"));
     const senha = String(data.get("senha"));
 
-    if (usuario !== "admin") {
-      setErro("Usuário ou senha inválidos");
-      return;
-    }
-
-    const senhaHash = localStorage.getItem("senha_hash");
-
-    if (senhaHash) {
-      const hash = await gerarHash(senha);
-      if (hash !== senhaHash) {
-        setErro("Usuário ou senha inválidos");
-        return;
+    try {
+      const resposta = await api<RespostaLogin>("/api/login", {
+        metodo: "POST",
+        corpo: { usuario, senha },
+      });
+      salvarToken(resposta.token);
+      if (resposta.usuario.precisa_trocar_senha) {
+        router.push("/trocar-senha");
+      } else {
+        router.push("/pontos");
       }
-      localStorage.setItem("logado", "1");
-      router.push("/pontos");
-    } else {
-      if (senha !== "admin") {
-        setErro("Usuário ou senha inválidos");
-        return;
-      }
-      localStorage.setItem("logado", "1");
-      router.push("/trocar-senha");
+    } catch (e) {
+      setErro((e as Error).message);
     }
   }
 
