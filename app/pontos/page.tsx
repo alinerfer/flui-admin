@@ -15,6 +15,7 @@ type Ponto = {
   preco: number;
   latitude: number;
   longitude: number;
+  disponivel: number;
 };
 
 export default function PontosPage() {
@@ -32,6 +33,32 @@ export default function PontosPage() {
     try {
       await api(`/api/pontos/${id}`, { metodo: "DELETE" });
       setPontos((atual) => atual.filter((p) => p.id !== id));
+    } catch (e) {
+      alert((e as Error).message);
+    }
+  }
+
+  async function alternarDisponibilidade(p: Ponto) {
+    const novo = p.disponivel ? 0 : 1;
+    try {
+      await api(`/api/pontos/${p.id}`, {
+        metodo: "PUT",
+        corpo: {
+          nome: p.nome,
+          endereco: p.endereco,
+          cidade: p.cidade,
+          uf: p.uf,
+          conector: p.conector,
+          potencia: p.potencia,
+          preco: p.preco,
+          latitude: p.latitude,
+          longitude: p.longitude,
+          disponivel: novo === 1,
+        },
+      });
+      setPontos((atual) =>
+        atual.map((x) => (x.id === p.id ? { ...x, disponivel: novo } : x))
+      );
     } catch (e) {
       alert((e as Error).message);
     }
@@ -63,8 +90,21 @@ export default function PontosPage() {
               className="border border-gray-200 rounded-md p-4 bg-white dark:border-gray-800 dark:bg-gray-900"
             >
               <div className="flex items-start justify-between gap-3">
-                <h2 className="font-semibold">{p.nome}</h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="font-semibold">{p.nome}</h2>
+                  {!p.disponivel && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                      Indisponível
+                    </span>
+                  )}
+                </div>
                 <div className="flex gap-3">
+                  <button
+                    onClick={() => alternarDisponibilidade(p)}
+                    className="text-sm text-amber-700 hover:underline dark:text-amber-400"
+                  >
+                    {p.disponivel ? "Tornar indisponível" : "Tornar disponível"}
+                  </button>
                   <Link
                     href={`/pontos/${p.id}/editar`}
                     className="text-sm text-emerald-700 hover:underline dark:text-emerald-400"
