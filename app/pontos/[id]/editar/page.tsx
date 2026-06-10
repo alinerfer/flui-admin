@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { api } from "@/lib/api";
 
 type Ponto = {
   id: string;
@@ -22,21 +23,24 @@ export default function EditarPontoPage() {
   const params = useParams<{ id: string }>();
   const [ponto, setPonto] = useState<Ponto | null>(null);
   const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
-    const pontos: Ponto[] = JSON.parse(localStorage.getItem("pontos") || "[]");
-    const encontrado = pontos.find((p) => p.id === params.id);
-    setPonto(encontrado ?? null);
-    setCarregando(false);
+    api<Ponto>(`/api/pontos/${params.id}`)
+      .then((dados) => setPonto(dados))
+      .catch(() => setPonto(null))
+      .finally(() => setCarregando(false));
   }, [params.id]);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!ponto) return;
+    setErro("");
+    setSalvando(true);
     const data = new FormData(e.currentTarget);
 
-    const atualizado: Ponto = {
-      id: ponto.id,
+    const atualizado = {
       nome: String(data.get("nome")),
       endereco: String(data.get("endereco")),
       cidade: String(data.get("cidade")),
@@ -48,11 +52,13 @@ export default function EditarPontoPage() {
       longitude: Number(data.get("longitude")),
     };
 
-    const pontos: Ponto[] = JSON.parse(localStorage.getItem("pontos") || "[]");
-    const novos = pontos.map((p) => (p.id === ponto.id ? atualizado : p));
-    localStorage.setItem("pontos", JSON.stringify(novos));
-
-    router.push("/pontos");
+    try {
+      await api(`/api/pontos/${ponto.id}`, { metodo: "PUT", corpo: atualizado });
+      router.push("/pontos");
+    } catch (e) {
+      setErro((e as Error).message);
+      setSalvando(false);
+    }
   }
 
   if (carregando) {
@@ -191,11 +197,14 @@ export default function EditarPontoPage() {
           />
         </label>
 
+        {erro && <p className="text-sm text-red-600">{erro}</p>}
+
         <button
           type="submit"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium mt-2"
+          disabled={salvando}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium mt-2 disabled:opacity-60"
         >
-          Salvar alterações
+          {salvando ? "Salvando..." : "Salvar alterações"}
         </button>
       </form>
     </div>
