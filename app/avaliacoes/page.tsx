@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 
 type Avaliacao = {
   id: string;
-  pontoId: string;
+  ponto_id: string;
+  ponto_nome: string | null;
   motorista: string;
   nota: number;
   comentario: string;
@@ -19,52 +21,24 @@ export default function AvaliacoesPage() {
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [pontos, setPontos] = useState<Ponto[]>([]);
   const [filtroPonto, setFiltroPonto] = useState("todos");
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    setPontos(JSON.parse(localStorage.getItem("pontos") || "[]"));
-
-    const dados: Avaliacao[] = JSON.parse(
-      localStorage.getItem("avaliacoes") || "[]"
-    );
-    if (dados.length === 0) {
-      const iniciais: Avaliacao[] = [
-        {
-          id: "1",
-          pontoId: "paulista",
-          motorista: "Ana Souza",
-          nota: 5,
-          comentario: "Carregamento rápido e local seguro.",
-        },
-        {
-          id: "2",
-          pontoId: "paulista",
-          motorista: "Carlos Lima",
-          nota: 4,
-          comentario: "Bom, mas estava com fila no horário de pico.",
-        },
-        {
-          id: "3",
-          pontoId: "iguatemi",
-          motorista: "Mariana Reis",
-          nota: 3,
-          comentario: "Funcionou, porém um pouco lento para o meu carro.",
-        },
-      ];
-      localStorage.setItem("avaliacoes", JSON.stringify(iniciais));
-      setAvaliacoes(iniciais);
-    } else {
-      setAvaliacoes(dados);
-    }
+    Promise.all([
+      api<Avaliacao[]>("/api/avaliacoes"),
+      api<Ponto[]>("/api/pontos"),
+    ])
+      .then(([listaAvaliacoes, listaPontos]) => {
+        setAvaliacoes(listaAvaliacoes);
+        setPontos(listaPontos);
+      })
+      .finally(() => setCarregando(false));
   }, []);
-
-  function nomeDoPonto(id: string) {
-    return pontos.find((p) => p.id === id)?.nome ?? "Ponto removido";
-  }
 
   const avaliacoesFiltradas =
     filtroPonto === "todos"
       ? avaliacoes
-      : avaliacoes.filter((a) => a.pontoId === filtroPonto);
+      : avaliacoes.filter((a) => a.ponto_id === filtroPonto);
 
   return (
     <div className="p-8">
@@ -86,7 +60,9 @@ export default function AvaliacoesPage() {
         </select>
       </label>
 
-      {avaliacoesFiltradas.length === 0 ? (
+      {carregando ? (
+        <p className="text-gray-500 dark:text-gray-400">Carregando...</p>
+      ) : avaliacoesFiltradas.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400">
           Nenhuma avaliação ainda.
         </p>
@@ -101,7 +77,7 @@ export default function AvaliacoesPage() {
                 <div>
                   <h2 className="font-semibold">{a.motorista}</h2>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {nomeDoPonto(a.pontoId)}
+                    {a.ponto_nome ?? "Ponto removido"}
                   </p>
                 </div>
                 <span className="text-amber-500">
