@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { removerToken } from "@/lib/api";
+import { api, removerToken } from "@/lib/api";
 
 const abas = [
   { href: "/pontos", label: "Pontos de recarga" },
@@ -19,7 +19,10 @@ export default function Header() {
     return null;
   }
 
-  function sair() {
+  async function sair() {
+    try {
+      await api("/api/logout", { metodo: "POST" });
+    } catch {}
     removerToken();
     router.push("/login");
   }
