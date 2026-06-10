@@ -2,33 +2,39 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
+import { api } from "@/lib/api";
 
 export default function NovoPontoPage() {
   const router = useRouter();
+  const [erro, setErro] = useState("");
+  const [salvando, setSalvando] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setErro("");
+    setSalvando(true);
     const data = new FormData(e.currentTarget);
 
     const novoPonto = {
-      id: crypto.randomUUID(),
-      nome: data.get("nome"),
-      endereco: data.get("endereco"),
-      cidade: data.get("cidade"),
-      uf: data.get("uf"),
-      conector: data.get("conector"),
+      nome: String(data.get("nome")),
+      endereco: String(data.get("endereco")),
+      cidade: String(data.get("cidade")),
+      uf: String(data.get("uf")),
+      conector: String(data.get("conector")),
       potencia: Number(data.get("potencia")),
       preco: Number(data.get("preco")),
       latitude: Number(data.get("latitude")),
       longitude: Number(data.get("longitude")),
     };
 
-    const pontos = JSON.parse(localStorage.getItem("pontos") || "[]");
-    pontos.push(novoPonto);
-    localStorage.setItem("pontos", JSON.stringify(pontos));
-
-    router.push("/pontos");
+    try {
+      await api("/api/pontos", { metodo: "POST", corpo: novoPonto });
+      router.push("/pontos");
+    } catch (e) {
+      setErro((e as Error).message);
+      setSalvando(false);
+    }
   }
 
   return (
@@ -137,11 +143,14 @@ export default function NovoPontoPage() {
           />
         </label>
 
+        {erro && <p className="text-sm text-red-600">{erro}</p>}
+
         <button
           type="submit"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium mt-2"
+          disabled={salvando}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium mt-2 disabled:opacity-60"
         >
-          Cadastrar
+          {salvando ? "Cadastrando..." : "Cadastrar"}
         </button>
       </form>
     </div>
