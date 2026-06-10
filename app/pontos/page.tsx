@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 
 type Ponto = {
   id: string;
@@ -18,48 +19,22 @@ type Ponto = {
 
 export default function PontosPage() {
   const [pontos, setPontos] = useState<Ponto[]>([]);
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    const dados: Ponto[] = JSON.parse(localStorage.getItem("pontos") || "[]");
-    if (dados.length === 0) {
-      const iniciais: Ponto[] = [
-        {
-          id: "paulista",
-          nome: "Posto Av. Paulista",
-          endereco: "Av. Paulista, 1000",
-          cidade: "São Paulo",
-          uf: "SP",
-          conector: "CCS",
-          potencia: 150,
-          preco: 1.85,
-          latitude: -23.5613,
-          longitude: -46.6565,
-        },
-        {
-          id: "iguatemi",
-          nome: "Shopping Iguatemi",
-          endereco: "Av. Brigadeiro Faria Lima, 2232",
-          cidade: "São Paulo",
-          uf: "SP",
-          conector: "Type 2",
-          potencia: 22,
-          preco: 1.45,
-          latitude: -23.5762,
-          longitude: -46.6896,
-        },
-      ];
-      localStorage.setItem("pontos", JSON.stringify(iniciais));
-      setPontos(iniciais);
-    } else {
-      setPontos(dados);
-    }
+    api<Ponto[]>("/api/pontos")
+      .then((dados) => setPontos(dados))
+      .finally(() => setCarregando(false));
   }, []);
 
-  function removerPonto(id: string) {
+  async function removerPonto(id: string) {
     if (!confirm("Remover este ponto?")) return;
-    const novos = pontos.filter((p) => p.id !== id);
-    setPontos(novos);
-    localStorage.setItem("pontos", JSON.stringify(novos));
+    try {
+      await api(`/api/pontos/${id}`, { metodo: "DELETE" });
+      setPontos((atual) => atual.filter((p) => p.id !== id));
+    } catch (e) {
+      alert((e as Error).message);
+    }
   }
 
   return (
@@ -74,7 +49,9 @@ export default function PontosPage() {
         </Link>
       </div>
 
-      {pontos.length === 0 ? (
+      {carregando ? (
+        <p className="text-gray-500 dark:text-gray-400">Carregando...</p>
+      ) : pontos.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400">
           Nenhum ponto cadastrado ainda.
         </p>
