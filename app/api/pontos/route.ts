@@ -13,6 +13,7 @@ type CorpoPonto = {
   preco?: unknown;
   latitude?: unknown;
   longitude?: unknown;
+  disponivel?: unknown;
 };
 
 function validar(corpo: CorpoPonto): string | null {
@@ -53,9 +54,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ erro: mensagem }, { status: 400 });
   }
 
+  const disponivel = corpo.disponivel === false ? 0 : 1;
   const id = crypto.randomUUID();
   db.prepare(
-    "INSERT INTO pontos (id, nome, endereco, cidade, uf, conector, potencia, preco, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO pontos (id, nome, endereco, cidade, uf, conector, potencia, preco, latitude, longitude, disponivel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).run(
     id,
     corpo.nome as string,
@@ -66,7 +68,8 @@ export async function POST(request: Request) {
     corpo.potencia as number,
     corpo.preco as number,
     corpo.latitude as number,
-    corpo.longitude as number
+    corpo.longitude as number,
+    disponivel
   );
 
   const novo = db.prepare("SELECT * FROM pontos WHERE id = ?").get(id);

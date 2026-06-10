@@ -44,7 +44,8 @@ function iniciarBanco(db: Database.Database) {
       potencia REAL NOT NULL,
       preco REAL NOT NULL,
       latitude REAL NOT NULL,
-      longitude REAL NOT NULL
+      longitude REAL NOT NULL,
+      disponivel INTEGER NOT NULL DEFAULT 1
     );
 
     CREATE TABLE IF NOT EXISTS avaliacoes (
@@ -55,6 +56,15 @@ function iniciarBanco(db: Database.Database) {
       comentario TEXT NOT NULL
     );
   `);
+
+  const colunasPontos = db
+    .prepare("PRAGMA table_info(pontos)")
+    .all() as Array<{ name: string }>;
+  if (!colunasPontos.some((c) => c.name === "disponivel")) {
+    db.exec(
+      "ALTER TABLE pontos ADD COLUMN disponivel INTEGER NOT NULL DEFAULT 1"
+    );
+  }
 
   const colunas = db
     .prepare("PRAGMA table_info(usuarios)")

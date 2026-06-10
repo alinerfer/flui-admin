@@ -14,6 +14,7 @@ type CorpoPonto = {
   preco?: unknown;
   latitude?: unknown;
   longitude?: unknown;
+  disponivel?: unknown;
 };
 
 function validar(corpo: CorpoPonto): string | null {
@@ -49,7 +50,9 @@ export async function PUT(request: Request, ctx: Contexto) {
   }
   const { id } = await ctx.params;
 
-  const existe = db.prepare("SELECT id FROM pontos WHERE id = ?").get(id);
+  const existe = db
+    .prepare("SELECT disponivel FROM pontos WHERE id = ?")
+    .get(id) as { disponivel: number } | undefined;
   if (!existe) {
     return NextResponse.json({ erro: "Ponto não encontrado" }, { status: 404 });
   }
@@ -64,8 +67,15 @@ export async function PUT(request: Request, ctx: Contexto) {
     return NextResponse.json({ erro: mensagem }, { status: 400 });
   }
 
+  const disponivel =
+    typeof corpo.disponivel === "boolean"
+      ? corpo.disponivel
+        ? 1
+        : 0
+      : existe.disponivel;
+
   db.prepare(
-    "UPDATE pontos SET nome=?, endereco=?, cidade=?, uf=?, conector=?, potencia=?, preco=?, latitude=?, longitude=? WHERE id = ?"
+    "UPDATE pontos SET nome=?, endereco=?, cidade=?, uf=?, conector=?, potencia=?, preco=?, latitude=?, longitude=?, disponivel=? WHERE id = ?"
   ).run(
     corpo.nome as string,
     corpo.endereco as string,
@@ -76,6 +86,7 @@ export async function PUT(request: Request, ctx: Contexto) {
     corpo.preco as number,
     corpo.latitude as number,
     corpo.longitude as number,
+    disponivel,
     id
   );
 
