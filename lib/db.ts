@@ -25,7 +25,11 @@ function iniciarBanco(db: Database.Database) {
       usuario TEXT NOT NULL UNIQUE,
       senha_hash TEXT,
       precisa_trocar_senha INTEGER NOT NULL DEFAULT 1,
-      tipo TEXT NOT NULL DEFAULT 'admin'
+      tipo TEXT NOT NULL DEFAULT 'admin',
+      nome_completo TEXT,
+      email TEXT,
+      veiculo_modelo TEXT,
+      veiculo_placa TEXT
     );
 
     CREATE TABLE IF NOT EXISTS tokens (
@@ -74,6 +78,18 @@ function iniciarBanco(db: Database.Database) {
       "ALTER TABLE usuarios ADD COLUMN tipo TEXT NOT NULL DEFAULT 'admin'"
     );
   }
+  if (!colunas.some((c) => c.name === "nome_completo")) {
+    db.exec("ALTER TABLE usuarios ADD COLUMN nome_completo TEXT");
+  }
+  if (!colunas.some((c) => c.name === "email")) {
+    db.exec("ALTER TABLE usuarios ADD COLUMN email TEXT");
+  }
+  if (!colunas.some((c) => c.name === "veiculo_modelo")) {
+    db.exec("ALTER TABLE usuarios ADD COLUMN veiculo_modelo TEXT");
+  }
+  if (!colunas.some((c) => c.name === "veiculo_placa")) {
+    db.exec("ALTER TABLE usuarios ADD COLUMN veiculo_placa TEXT");
+  }
 
   const temAdmin = db
     .prepare("SELECT COUNT(*) as total FROM usuarios WHERE tipo = 'admin'")
@@ -89,11 +105,11 @@ function iniciarBanco(db: Database.Database) {
     .get() as { total: number };
   if (temMotorista.total === 0) {
     const inserir = db.prepare(
-      "INSERT INTO usuarios (usuario, senha_hash, precisa_trocar_senha, tipo) VALUES (?, ?, 0, 'motorista')"
+      "INSERT INTO usuarios (usuario, senha_hash, precisa_trocar_senha, tipo, nome_completo, email, veiculo_modelo, veiculo_placa) VALUES (?, ?, 0, 'motorista', ?, ?, ?, ?)"
     );
-    inserir.run("ana", hash("ana123"));
-    inserir.run("carlos", hash("carlos123"));
-    inserir.run("mariana", hash("mariana123"));
+    inserir.run("ana", hash("ana123"), "Ana Souza", "ana@flui.test", "Nissan Leaf", "ABC1A23");
+    inserir.run("carlos", hash("carlos123"), "Carlos Lima", "carlos@flui.test", "BYD Dolphin", "DEF2B45");
+    inserir.run("mariana", hash("mariana123"), "Mariana Reis", "mariana@flui.test", "Renault Kwid E-Tech", "GHI3C67");
   }
 
   const temPonto = db
