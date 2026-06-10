@@ -37,7 +37,8 @@ yarn-error.log*
 .vercel
 
 # banco sqlite
-/data/*.sqlite
+/data/*
+!/data/.gitkeep
 
 # typescript
 *.tsbuildinfo

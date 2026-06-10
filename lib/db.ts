@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import crypto from "node:crypto";
 import path from "node:path";
 
 const dbPath = path.join(process.cwd(), "data", "flui.sqlite");
@@ -13,13 +14,18 @@ if (!globalForDb.db) {
   iniciarBanco(db);
 }
 
+function hash(senha: string) {
+  return crypto.createHash("sha256").update(senha).digest("hex");
+}
+
 function iniciarBanco(db: Database.Database) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS usuarios (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       usuario TEXT NOT NULL UNIQUE,
       senha_hash TEXT,
-      precisa_trocar_senha INTEGER NOT NULL DEFAULT 1
+      precisa_trocar_senha INTEGER NOT NULL DEFAULT 1,
+      tipo TEXT NOT NULL DEFAULT 'admin'
     );
 
     CREATE TABLE IF NOT EXISTS tokens (
@@ -50,13 +56,34 @@ function iniciarBanco(db: Database.Database) {
     );
   `);
 
-  const temUsuario = db
-    .prepare("SELECT COUNT(*) as total FROM usuarios")
+  const colunas = db
+    .prepare("PRAGMA table_info(usuarios)")
+    .all() as Array<{ name: string }>;
+  if (!colunas.some((c) => c.name === "tipo")) {
+    db.exec(
+      "ALTER TABLE usuarios ADD COLUMN tipo TEXT NOT NULL DEFAULT 'admin'"
+    );
+  }
+
+  const temAdmin = db
+    .prepare("SELECT COUNT(*) as total FROM usuarios WHERE tipo = 'admin'")
     .get() as { total: number };
-  if (temUsuario.total === 0) {
+  if (temAdmin.total === 0) {
     db.prepare(
-      "INSERT INTO usuarios (usuario, senha_hash, precisa_trocar_senha) VALUES (?, NULL, 1)"
+      "INSERT INTO usuarios (usuario, senha_hash, precisa_trocar_senha, tipo) VALUES (?, NULL, 1, 'admin')"
     ).run("admin");
+  }
+
+  const temMotorista = db
+    .prepare("SELECT COUNT(*) as total FROM usuarios WHERE tipo = 'motorista'")
+    .get() as { total: number };
+  if (temMotorista.total === 0) {
+    const inserir = db.prepare(
+      "INSERT INTO usuarios (usuario, senha_hash, precisa_trocar_senha, tipo) VALUES (?, ?, 0, 'motorista')"
+    );
+    inserir.run("ana", hash("ana123"));
+    inserir.run("carlos", hash("carlos123"));
+    inserir.run("mariana", hash("mariana123"));
   }
 
   const temPonto = db
