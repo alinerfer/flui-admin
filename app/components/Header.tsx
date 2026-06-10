@@ -9,9 +9,15 @@ const abas = [
   { href: "/avaliacoes", label: "Avaliações" },
 ];
 
+const rotasSemHeader = ["/login", "/trocar-senha"];
+
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
+
+  if (rotasSemHeader.some((rota) => pathname.startsWith(rota))) {
+    return null;
+  }
 
   function sair() {
     removerToken();
