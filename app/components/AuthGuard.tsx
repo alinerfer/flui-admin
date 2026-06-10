@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { pegarToken } from "@/lib/api";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -13,8 +14,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       setVerificando(false);
       return;
     }
-    const logado = localStorage.getItem("logado");
-    if (!logado) {
+    const token = pegarToken();
+    if (!token) {
       router.replace("/login");
     } else {
       setVerificando(false);

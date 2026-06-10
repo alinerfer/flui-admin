@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { removerToken } from "@/lib/api";
 
 const abas = [
   { href: "/pontos", label: "Pontos de recarga" },
@@ -13,7 +14,7 @@ export default function Header() {
   const router = useRouter();
 
   function sair() {
-    localStorage.removeItem("logado");
+    removerToken();
     router.push("/login");
   }
 
