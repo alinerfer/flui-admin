@@ -3,15 +3,19 @@ import crypto from "node:crypto";
 import path from "node:path";
 
 const dbPath = path.join(process.cwd(), "data", "flui.sqlite");
+const ehBuild = process.env.NEXT_PHASE === "phase-production-build";
 
 const globalForDb = globalThis as unknown as { db?: Database.Database };
 
 export const db = globalForDb.db ?? new Database(dbPath);
 if (!globalForDb.db) {
   globalForDb.db = db;
-  db.pragma("journal_mode = WAL");
-  db.pragma("foreign_keys = ON");
-  iniciarBanco(db);
+  if (!ehBuild) {
+    db.pragma("journal_mode = WAL");
+    db.pragma("foreign_keys = ON");
+    db.pragma("busy_timeout = 5000");
+    iniciarBanco(db);
+  }
 }
 
 function hash(senha: string) {
